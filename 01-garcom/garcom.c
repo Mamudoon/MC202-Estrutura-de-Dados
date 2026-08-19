@@ -1,21 +1,19 @@
 #include <stdio.h>
 
-int main() {
-    int bandejas;
-    int latas;
-    int copos;
-    int total = 0;
+int main(void) {
+    int bandejas, latas, copos, quebrados = 0, i = 0;
 
-    scanf("%d", &bandejas);
+    scanf("%d", &bandejas); 
 
-    for (int i = 0; i < bandejas; i++) {
-        scanf("%d %d", &latas, &copos);
-        if (latas > copos) {
-            total += copos;
+    for (i = 0; i < bandejas; i++) { //roda para cada bandeja
+
+        scanf("%d %d", &latas, &copos); 
+
+        if (latas > copos) { 
+            quebrados += copos; 
         }
     }
 
-    printf("%d\n", total);
-
+    printf("%d\n", quebrados);
     return 0;
 }
