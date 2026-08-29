@@ -1,19 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-
-int checar_num(char *frase, int i) {
-    int k = 4, valor = 0; // k = 4, pois o maior número de algarismos juntos é 5
-    for (i = i; i <= i + 4; i++) {
-        if (frase[i] < '0' || frase[i] > '9') // interrompe se não for um número
-            break;
-        valor += (int) (frase[i] - '0') * pow(10, k);  // faz vezes 10^k, pois não sabemos se terão mais números ou não
-        k--;
-    }
-    valor /= (int) pow(10, k + 1); // divide para corrigir os números que não têm 5 algarismos
-    return valor;
-}
 
 int eh_caracter_especial_ou_num(char c) {
     if (c >= '0' && c <= '9')
