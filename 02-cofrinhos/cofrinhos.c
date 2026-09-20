@@ -27,7 +27,7 @@ int main(void) {
         printf("Teste %d\n", teste);
         teste++; //incrementa para o próximo teste
 
-        for (i = 0; i < n; i++) { // resultado das diferenças em cada depósito
+        for (i = 0; i < n; i++) { // resultado das diferenças em cada
             diff += diferenca_cofrinhos();
             printf("%d\n", diff);
         }

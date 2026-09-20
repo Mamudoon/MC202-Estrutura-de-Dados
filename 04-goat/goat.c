@@ -17,7 +17,7 @@ int eh_vogal_ou_cons(char c) {
     return 0; // é uma consoante
 }
 
-void traduzir_e_imprimir_palavra(char *frase, char * palavra, int comeco, int i) {
+void traduzir_e_imprimir_palavra(char *frase, char *palavra, int comeco, int i) {
     int pulado = 0, fim;
     for (int j = comeco; j < i; j++) { // percorre a palavra
         if (eh_caracter_especial_ou_num(frase[j]) == 1) // ignora os que não são letras
