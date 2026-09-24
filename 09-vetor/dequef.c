@@ -61,24 +61,21 @@ long df_size(dequef* D) {
    If attempting to resize the array fails then it returns 0 and D remains unchanged.
 **/
 int df_push(dequef* D, float x) {
-   int fim;
-   float *temp;
    if (D->size == D->cap) {
-      temp = (float*) realloc(D->data, D->cap*D->factor*sizeof(float));
-      if (temp == NULL) {
+      float *temp = D->data;
+      D->data = (float*) realloc(D->data, (D->cap*D->factor)*sizeof(float));
+      if (D->data == NULL) {
+         D->data = temp;
          return 0;
       }
-      for (int i = 0; i < D->size; ++i) {
-         fim = (D->first + i)%D->cap;
-         temp[i] = D->data[fim];
-      }
+      memmove(D->data, &D->data[D->first], (D->size-D->first)*sizeof(float));
       D->first = 0;
       D->cap *= D->factor;
-      free(D->data);
    }
-      temp[++fim]= x;
-      D->data = temp;
-      return 1;
+   int fim = (D->first + D->size)%D->cap;
+   D->data[fim] = x;
+   ++D->size;
+   return 1;
 }
 
 
@@ -154,9 +151,11 @@ void df_set(dequef* D, long i, float x) {
    Print the elements of D in a single line.
 **/
 void df_print(dequef* D) {
+   int fim; // chamei de fim para manter a convenção com a chamada no push que eu fiz
    printf("deque (%ld):", D->size);
    for (int i = 0; i < D->size; ++i) {
-      printf(" %.1f");
+      fim = (D->first + i)%D->cap;
+      printf(" %.1f", D->data[fim]);
    }
    printf("\n");
 }
