@@ -16,26 +16,28 @@
    On failure it returns NULL.
 **/
 dequef* df_alloc(long capacity, double factor) {
-   dequef* D = malloc(sizeof(dequef));
-   if (D == NULL) {
+   dequef* D = (dequef*) malloc(sizeof(dequef));
+   if (D == NULL) { // retorna NULL se a alocação der errada
       return NULL;
    }
+   D->data = (float*) malloc(capacity*sizeof(float));
    D->first = 0;
    D->size = 0;
    D->cap = capacity;
-   D->mincap = D->cap;
+   D->mincap = capacity;
    D->factor = factor;
-   D->data = malloc(cap*sizeof(float));
-   if (D->data == NULL) {
+   if (D->data == NULL) { // retorna NULL se a alocação der errada
       return NULL;
    }
-
+   return D;
 }
 
 /**
   Release a dequef and its data.
 **/
 void df_free(dequef* D) {
+   free(D->data);
+   free(D);
 }
 
 
@@ -44,6 +46,7 @@ void df_free(dequef* D) {
    The size of the deque.
 **/
 long df_size(dequef* D) {
+   return D->size;
 }
 
 
@@ -58,6 +61,24 @@ long df_size(dequef* D) {
    If attempting to resize the array fails then it returns 0 and D remains unchanged.
 **/
 int df_push(dequef* D, float x) {
+   int fim;
+   float *temp;
+   if (D->size == D->cap) {
+      temp = (float*) realloc(D->data, D->cap*D->factor*sizeof(float));
+      if (temp == NULL) {
+         return 0;
+      }
+      for (int i = 0; i < D->size; ++i) {
+         fim = (D->first + i)%D->cap;
+         temp[i] = D->data[fim];
+      }
+      D->first = 0;
+      D->cap *= D->factor;
+      free(D->data);
+   }
+      temp[++fim]= x;
+      D->data = temp;
+      return 1;
 }
 
 
@@ -133,4 +154,9 @@ void df_set(dequef* D, long i, float x) {
    Print the elements of D in a single line.
 **/
 void df_print(dequef* D) {
+   printf("deque (%ld):", D->size);
+   for (int i = 0; i < D->size; ++i) {
+      printf(" %.1f");
+   }
+   printf("\n");
 }
