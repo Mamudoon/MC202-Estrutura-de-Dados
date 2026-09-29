@@ -68,11 +68,12 @@ int df_push(dequef* D, float x) {
          D->data = temp;
          return 0;
       }
-      memmove(D->data, &D->data[D->first], (D->size-D->first)*sizeof(float));
-      D->first = 0;
       D->cap *= D->factor;
+      for (int i = 0; i < D->first; ++i) {
+         D->data[(i + D->size)%D->cap] = D->data[i];
+      }
    }
-   int fim = (D->first + D->size)%D->cap;
+   long fim = (D->first + D->size)%D->cap;
    D->data[fim] = x;
    ++D->size;
    return 1;
@@ -92,6 +93,22 @@ int df_push(dequef* D, float x) {
    What happens if D is empty before the call?
 **/
 float df_pop(dequef* D) {
+   long fim = (D->first + D->size - 1)%D->cap;
+   float valor = D->data[fim];
+   --D->size;
+   if (D->size == D->cap/(D->factor*D->factor) && D->cap != D->mincap) {
+      long cap_antigo = D->cap;
+      if (D->mincap < D->cap/D->factor) {
+         D->cap /= D->factor;
+      } else {
+         D->cap = D->mincap;
+      }
+      for (int i = 0; i < D->size; ++i) {
+         D->data[(i + D->first)%D->cap] = D->data[(i + D->first)%cap_antigo];
+      }
+      D->data = (float*) realloc(D->data, D->cap*sizeof(float));
+   }
+   return valor;
 }
 
 
@@ -106,6 +123,22 @@ float df_pop(dequef* D) {
    If attempting to resize the array fails then it returns 0 and D remains unchanged.
 **/
 int df_inject(dequef* D, float x) {
+   if (D->size == D->cap) {
+      float *temp = D->data;
+      D->data = (float*) realloc(D->data, (D->cap*D->factor)*sizeof(float));
+      if (D->data == NULL) {
+         D->data = temp;
+         return 0;
+      }
+      D->cap *= D->factor;
+      for (int i = 0; i < D->first; ++i) {
+         D->data[(i + D->size)%D->cap] = D->data[i];
+      }
+   }
+   D->first = (D->first + D->cap - 1)%D->cap;
+   D->data[D->first] = x;
+   ++D->size;
+   return 1;
 }
 
 
@@ -123,6 +156,25 @@ int df_inject(dequef* D, float x) {
    What happens if D is empty before the call?
 **/
 float df_eject(dequef* D) {
+   float valor = D->data[D->first];
+   ++D->first;
+   if (D->first == D->cap) {
+      D->first = 0;
+   }
+   --D->size;
+   if (D->size == D->cap/(D->factor*D->factor) && D->cap != D->mincap) {
+      long cap_antigo = D->cap;
+      if (D->mincap < D->cap/D->factor) {
+         D->cap /= D->factor;
+      } else {
+         D->cap = D->mincap;
+      }
+      for (int i = 0; i < D->size; ++i) {
+         D->data[(i + D->first)%D->cap] = D->data[(i + D->first)%cap_antigo];
+      }
+      D->data = (float*) realloc(D->data, D->cap*sizeof(float));
+   }
+   return valor;
 }
 
 
@@ -133,6 +185,11 @@ float df_eject(dequef* D) {
    If i is not in [0,|D|-1]] what happens then?
 **/
 float df_get(dequef* D, long i) {
+   for (int k = 0; k < D->size; ++k) {
+      if (i == k) {
+         return D->data[(D->first + k)%D->cap];
+      }
+   }
 }
 
 
@@ -143,6 +200,11 @@ float df_get(dequef* D, long i) {
    If i is not in [0,|D|-1]] what happens then?
 **/
 void df_set(dequef* D, long i, float x) {
+   for (int k = 0; k < D->size; ++k) {
+      if (i == k) {
+         D->data[(D->first + k)%D->cap] = x;
+      }
+   }
 }
 
 
@@ -151,11 +213,9 @@ void df_set(dequef* D, long i, float x) {
    Print the elements of D in a single line.
 **/
 void df_print(dequef* D) {
-   int fim; // chamei de fim para manter a convenção com a chamada no push que eu fiz
-   printf("deque (%ld):", D->size);
+   printf("deque (%ld): ", D->size);
    for (int i = 0; i < D->size; ++i) {
-      fim = (D->first + i)%D->cap;
-      printf(" %.1f", D->data[fim]);
+      printf("%.1f ", D->data[(D->first + i)%D->cap]);
    }
    printf("\n");
 }
