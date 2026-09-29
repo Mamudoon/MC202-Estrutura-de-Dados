@@ -1,0 +1,4 @@
+Sequencial: 262261
+MTF: 259077
+Transpose: 260093
+Count: 256280

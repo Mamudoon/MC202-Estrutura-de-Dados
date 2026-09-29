@@ -6,10 +6,12 @@ struct no {
     int buscado;
     int valor;
     No *next;
+    No *prev;
 };
 
 typedef struct lista {
     No *primeiro;
+    No *ultimo;
 } Lista;
 
 typedef enum tipo {
@@ -25,9 +27,14 @@ typedef enum tipo {
 void criar(Lista *L, int n);
 
 /** 
- Busca na lista L o número valor;
+ Busca na lista L o número valor, retorna o número de comparações feitas até achar;
 **/
-void buscar(Lista *L, int valor, Tipo tipo);
+int buscar(Lista *L, int valor, Tipo tipo);
+
+/**
+ Libera toda a memória alocada.
+ **/
+void remover_tudo(Lista *L);
 
 /**
  Adiciona o valor na lista L
