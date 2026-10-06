@@ -22,6 +22,24 @@ ArvNo* criar_no(char *palavra, long freq) {
     return novo;
 }
 
+Lista* criar_lis(void) {
+    Lista *L = (Lista*) malloc(sizeof(Lista));
+    L->head = NULL;
+    return L;
+}
+
+void procurar(Lista *L, ArvNo *raiz, char *prefixo) { // acha todas as palavra que começam com o prefixo e adiciona para uma lista
+    if (raiz != NULL) {
+        if (strstr(raiz->palavra, prefixo) == raiz->palavra) {
+            LisNo* novo = (LisNo*) malloc(sizeof(LisNo));
+            novo->no = raiz;
+            inserir_no_lis(L, novo);
+        }
+        procurar(L, raiz->esquerda, prefixo);
+        procurar(L, raiz->direita, prefixo);
+    }
+}
+
 void buscar_no(ArvNo *raiz, char *palavra) {
     ArvNo *u = raiz;
     while (u != NULL && strcmp(u->palavra, palavra) != 0) { // percorre a árvore até achar um nó com a chave igual a palavra ou até não achar
@@ -32,7 +50,7 @@ void buscar_no(ArvNo *raiz, char *palavra) {
         }
     }
     if (u == NULL) {
-        printf("%s not found\n", palavra);
+        printf("%s not found.\n", palavra);
     } else {
         printf("%s %ld\n", palavra, u->freq);
     }
@@ -104,7 +122,35 @@ void remover_no(Arvore* T, char* lixo) {
     }
 }
 
-void inserir_no(Arvore *T, ArvNo *novo) {
+void remover_todos_nos_lis(Lista *L) {
+    LisNo* lixo;
+    while (L->head != NULL) {
+        lixo = L->head;
+        L->head = L->head->next;
+        free(lixo);
+    }
+}
+
+void remover_todos_nos_arv(ArvNo *raiz) {
+    if (raiz != NULL) {
+        remover_todos_nos_arv(raiz->esquerda);
+        remover_todos_nos_arv(raiz->direita);
+        free(raiz->palavra);
+        free(raiz);
+    }
+}
+
+void remover_arv(Arvore *T) {
+    remover_todos_nos_arv(T->raiz);
+    free(T);
+}
+
+void remover_lis(Lista *L) {
+    remover_todos_nos_lis(L); 
+    free(L);
+}
+
+void inserir_no_arv(Arvore *T, ArvNo *novo) {
     ArvNo *u, *p;
     u = T->raiz;
     p = NULL;
@@ -128,6 +174,71 @@ void inserir_no(Arvore *T, ArvNo *novo) {
         p->direita = novo;
     }
     novo->pai = p;
+}
+
+void inserir_no_lis(Lista *L, LisNo *novo) {
+    LisNo* p;
+    if (L->head == NULL) {
+        L->head = novo;
+        return;
+    }
+    if (novo->no->freq > L->head->no->freq) { // se for maior que o primeiro
+        novo->next = L->head;
+        L->head = novo;
+        return;
+    } else if (novo->no->freq == L->head->no->freq) { // se vier lexicograficamente antes que o primeiro
+        if (strcmp(novo->no->palavra, L->head->no->palavra) < 0) {
+            novo->next = L->head;
+            L->head = novo;
+            return;
+        }
+    }
+
+    for (p = L->head; p->next != NULL; p = p->next) {
+        if (novo->no->freq > p->next->no->freq) {
+            novo->next = p->next;
+            p->next = novo; 
+            return;
+        } else if (novo->no->freq == p->next->no->freq) {
+            if (strcmp(novo->no->palavra, p->next->no->palavra) < 0) {
+                novo->next = p->next;
+                p->next = novo; 
+                return;
+            }         
+        }
+    }
+    novo->next = NULL;
+    p->next = novo;
+}
+
+void autocompletar(Lista *L, Arvore *T, char *prefixo, long k) {
+    int i = 0;
+    ArvNo *u = T->raiz;
+    while (u != NULL) { // percorre a árvore até achar um nó com a chave igual a palavra ou até não achar
+        if (strstr(u->palavra, prefixo) == u->palavra) {
+            break;
+        }
+        if (strcmp(u->palavra, prefixo) > 0) {
+            u = u->esquerda;
+        } else {
+            u = u->direita;
+        }
+    }
+    if (u != NULL) {
+        printf("oi\n");
+        procurar(L, u, prefixo); // procura a partir da primeira instância do prefixo na árvore
+        for (LisNo* p = L->head; p != NULL; p = p->next) {
+            if (i == k) {
+                break;
+            }
+            printf("(%s,%ld) ", p->no->palavra, p->no->freq);
+            ++i;
+        }
+        printf("\n");
+    } else {
+        printf("nothing for %s.\n", prefixo);
+    }
+    remover_todos_nos_lis(L);
 }
 
 void imprimir_arv(ArvNo *raiz) {
