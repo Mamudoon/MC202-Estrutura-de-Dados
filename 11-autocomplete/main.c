@@ -21,7 +21,8 @@ int main(void) {
         } else if (strcmp(comando, "AUTOCOMPLETE") == 0) {
 
         } else if (strcmp(comando, "DELETE") == 0) {
-
+            scanf(" %s", palavra);
+            remover_no(T, palavra);
         } else if (strcmp(comando, "PRINT") == 0) {
             if (T->raiz == NULL) {
                 printf("the dictionary is empty.\n");

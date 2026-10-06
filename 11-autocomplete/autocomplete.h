@@ -33,9 +33,9 @@ void inserir_no(Arvore *T, ArvNo *novo);
 
 /**
  * Remove nós de uma árvore;
- * (Raíz da árvore, o nó sendo removido)
+ * (Árvore T, a palavra que deve ser removida)
  */
-ArvNo* remover_no(ArvNo *raiz, ArvNo *lixo); 
+void remover_no(Arvore *T, char *lixo); 
 
 /**
  * Busca nós de uma ávore;
