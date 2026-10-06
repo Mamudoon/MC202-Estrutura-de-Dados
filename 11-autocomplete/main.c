@@ -16,7 +16,8 @@ int main(void) {
             ArvNo *novo = criar_no(palavra, freq);
             inserir_no(T, novo);
         } else if (strcmp(comando, "SEARCH") == 0) {
-
+            scanf(" %s", palavra);
+            buscar_no(T->raiz, palavra); 
         } else if (strcmp(comando, "AUTOCOMPLETE") == 0) {
 
         } else if (strcmp(comando, "DELETE") == 0) {

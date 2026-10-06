@@ -41,19 +41,12 @@ ArvNo* remover_no(ArvNo *raiz, ArvNo *lixo);
  * Busca nós de uma ávore;
  * (Raíz da árvore, a palavra sendo buscada)
  */
-ArvNo* buscar_no(ArvNo *raiz, char *palavra); 
+void buscar_no(ArvNo *raiz, char *palavra); 
 
 /**
  * Imprime a ávore em ordem;
  * (Raíz da árvore)
  */
 void imprimir_arv(ArvNo *raiz);
-
-/**
- * Compara os valores do ponteiro a e do ponteiro b;
- * Retorna 1 se a for maior, 0 se forem iguais e -1 se a for menor.
- * (Ponteiro a, Ponteiro b)
- */
-int comparar_nos(const void *a, const void *b);
 
 #endif

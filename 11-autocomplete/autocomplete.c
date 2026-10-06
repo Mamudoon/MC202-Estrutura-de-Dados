@@ -22,16 +22,32 @@ ArvNo* criar_no(char *palavra, long freq) {
     return novo;
 }
 
+void buscar_no(ArvNo *raiz, char *palavra) {
+    ArvNo *u = raiz;
+    while (u != NULL && strcmp(u->palavra, palavra) != 0) { // percorre a árvore até achar um nó com a chave igual a palavra ou até não achar
+        if (strcmp(u->palavra, palavra) > 0) {
+            u = u->esquerda;
+        } else {
+            u = u->direita;
+        }
+    }
+    if (u == NULL) {
+        printf("%s not found\n", palavra);
+    } else {
+        printf("%s %ld\n", palavra, u->freq);
+    }
+}
+
 void inserir_no(Arvore *T, ArvNo *novo) {
     ArvNo *u, *p;
     u = T->raiz;
     p = NULL;
     while (u != NULL) {
         p = u;
-        if (comparar_nos(novo, u) == 0) {
+        if (strcmp(novo->palavra, u->palavra) == 0) {
             u->freq = novo->freq;
             return;
-        } else if (comparar_nos(novo, u) < 0) {
+        } else if (strcmp(novo->palavra, u->palavra) < 0) {
             u = u->esquerda;
         } else {
             u = u->direita;
@@ -39,7 +55,7 @@ void inserir_no(Arvore *T, ArvNo *novo) {
     }
     if (p == NULL) {
         T->raiz = novo;
-    } else if ((comparar_nos(novo, p) < 0)) {
+    } else if ((strcmp(novo->palavra, p->palavra) < 0)) {
         p->esquerda = novo;
     } else {
         p->direita = novo;
@@ -53,10 +69,4 @@ void imprimir_arv(ArvNo *raiz) {
         printf("%s ", raiz->palavra);
         imprimir_arv(raiz->direita);
     }
-}
-
-int comparar_nos(const void* a, const void *b) {
-    const ArvNo *A = (ArvNo*) a;
-    const ArvNo *B = (ArvNo*) b;
-    return strcmp(A->palavra, B->palavra);
 }
