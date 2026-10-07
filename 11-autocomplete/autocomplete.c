@@ -19,24 +19,18 @@ ArvNo* criar_no(char *palavra, long freq) {
     strcpy(temp, palavra);
     novo->palavra = temp;
     novo->freq = freq;
-    novo->altura = 0;
+    novo->altura = 1;
     return novo;
 }
 
-Lista* criar_lis(void) {
-    Lista *L = (Lista*) malloc(sizeof(Lista));
-    L->head = NULL;
-    return L;
-}
-
-int altura(ArvNo *no) { // devolve a altura do nó
+static int altura(ArvNo *no) { // devolve a altura do nó
     if (no == NULL) {
         return 0;
     }
     return no->altura;
 }
 
-int maior(int a, int b) { // devolve o maior dos dois
+static int maior(int a, int b) { // devolve o maior dos dois
     if (a > b) {
         return a;
     } else {
@@ -44,15 +38,15 @@ int maior(int a, int b) { // devolve o maior dos dois
     }
 }
 
-void atualizar_altura(ArvNo *no) { // atualiza a altura do nó
+static void atualizar_altura(ArvNo *no) { // atualiza a altura do nó
     no->altura = 1 + maior(altura(no->esquerda), altura(no->direita));
 }
 
-int fator(ArvNo *no) { // devolve o fator de balanceamento
+static int fator(ArvNo *no) { // devolve o fator de balanceamento
     return altura(no->esquerda) - altura(no->direita);
 }
 
-void rotacionar_LL(Arvore *T, ArvNo *z) {
+static void rotacionar_LL(Arvore *T, ArvNo *z) {
     ArvNo *x = z->esquerda;
 
     z->esquerda = x->direita;
@@ -77,7 +71,7 @@ void rotacionar_LL(Arvore *T, ArvNo *z) {
     atualizar_altura(x);
 }
 
-void rotacionar_RR(Arvore *T, ArvNo *z) {
+static void rotacionar_RR(Arvore *T, ArvNo *z) {
     ArvNo *x = z->direita;
 
     z->direita = x->esquerda;
@@ -102,7 +96,7 @@ void rotacionar_RR(Arvore *T, ArvNo *z) {
     atualizar_altura(x);  
 }
 
-void balancear_insercao(Arvore *T, ArvNo *novo) {
+static void balancear_insercao(Arvore *T, ArvNo *novo) {
     ArvNo *u = novo->pai;
     while (u != NULL) {
         int altura_antiga = u->altura;
@@ -130,7 +124,7 @@ void balancear_insercao(Arvore *T, ArvNo *novo) {
     }
 }
 
-void balancear_remocao(Arvore *T, ArvNo *u) {
+static void balancear_remocao(Arvore *T, ArvNo *u) {
     while (u != NULL) {
         atualizar_altura(u);
         int fb = fator(u);
@@ -153,16 +147,35 @@ void balancear_remocao(Arvore *T, ArvNo *u) {
     }
 }
 
-void procurar(Lista *L, ArvNo *raiz, char *prefixo) { // acha todas as palavra que começam com o prefixo e adiciona para uma lista
-    if (raiz != NULL) {
-        if (strstr(raiz->palavra, prefixo) == raiz->palavra) {
-            LisNo* novo = (LisNo*) malloc(sizeof(LisNo));
-            novo->no = raiz;
-            inserir_no_lis(L, novo);
-        }
-        procurar(L, raiz->esquerda, prefixo);
-        procurar(L, raiz->direita, prefixo);
+static void adicionar(Vetor *vet, ArvNo *no) {
+    if (vet->n == vet->cap) {
+        vet->cap = 2*vet->cap;
+        vet->v = (ArvNo**) realloc(vet->v, vet->cap*sizeof(ArvNo*));
     }
+    vet->v[vet->n++] = no;
+}
+
+static void coletar(ArvNo *raiz, const char *prefixo, int tam, Vetor *vet) {
+    if (raiz == NULL) return;
+    int i = strncmp(raiz->palavra, prefixo, tam);
+    if (i < 0) {
+        coletar(raiz->direita, prefixo, tam, vet);
+    } else if (i > 0) {
+        coletar(raiz->esquerda, prefixo, tam, vet);
+    } else {
+        adicionar(vet, raiz);
+        coletar(raiz->esquerda, prefixo, tam, vet);
+        coletar(raiz->direita, prefixo, tam, vet);
+    }
+}
+
+static int comparar(const void *a, const void *b) {
+    ArvNo *A = *(ArvNo* const*) a;
+    ArvNo *B = *(ArvNo* const*) b;
+    if (A->freq != B->freq) {
+        return (A->freq < B->freq) ? 1 : -1;
+    }
+    return strcmp(A->palavra, B->palavra);
 }
 
 void buscar_no(ArvNo *raiz, char *palavra) {
@@ -256,16 +269,7 @@ void remover_no(Arvore* T, char* lixo) {
     }
 }
 
-void remover_todos_nos_lis(Lista *L) {
-    LisNo* lixo;
-    while (L->head != NULL) {
-        lixo = L->head;
-        L->head = L->head->next;
-        free(lixo);
-    }
-}
-
-void remover_todos_nos_arv(ArvNo *raiz) {
+static void remover_todos_nos_arv(ArvNo *raiz) {
     if (raiz != NULL) {
         remover_todos_nos_arv(raiz->esquerda);
         remover_todos_nos_arv(raiz->direita);
@@ -277,10 +281,6 @@ void remover_todos_nos_arv(ArvNo *raiz) {
 void remover_arv(Arvore *T) {
     remover_todos_nos_arv(T->raiz);
     free(T);
-}
-
-void remover_lis(Lista *L) {
-    free(L);
 }
 
 void inserir_no_arv(Arvore *T, ArvNo *novo) {
@@ -311,69 +311,23 @@ void inserir_no_arv(Arvore *T, ArvNo *novo) {
     balancear_insercao(T, novo);
 }
 
-void inserir_no_lis(Lista *L, LisNo *novo) {
-    LisNo* p;
-    if (L->head == NULL) {
-        L->head = novo;
-        novo->next = NULL;
-        return;
-    }
-    if (novo->no->freq > L->head->no->freq) { // se for maior que o primeiro
-        novo->next = L->head;
-        L->head = novo;
-        return;
-    } else if (novo->no->freq == L->head->no->freq) { // se vier lexicograficamente antes que o primeiro
-        if (strcmp(novo->no->palavra, L->head->no->palavra) < 0) {
-            novo->next = L->head;
-            L->head = novo;
-            return;
-        }
-    }
+void autocompletar(Arvore *T, char *prefixo, long k) {
+    Vetor vet;
+    vet.v = (ArvNo**) malloc(8*sizeof(ArvNo*));
+    vet.n = 0;
+    vet.cap = 8;
+    coletar(T->raiz, prefixo, strlen(prefixo), &vet);
 
-    for (p = L->head; p->next != NULL; p = p->next) {
-        if (novo->no->freq > p->next->no->freq) {
-            novo->next = p->next;
-            p->next = novo; 
-            return;
-        } else if (novo->no->freq == p->next->no->freq) {
-            if (strcmp(novo->no->palavra, p->next->no->palavra) < 0) {
-                novo->next = p->next;
-                p->next = novo; 
-                return;
-            }         
-        }
-    }
-    novo->next = NULL;
-    p->next = novo;
-}
-
-void autocompletar(Lista *L, Arvore *T, char *prefixo, long k) {
-    int i = 0;
-    ArvNo *u = T->raiz;
-    while (u != NULL) { // percorre a árvore até achar um nó com a chave igual a palavra ou até não achar
-        if (strstr(u->palavra, prefixo) == u->palavra) {
-            break;
-        }
-        if (strcmp(u->palavra, prefixo) > 0) {
-            u = u->esquerda;
-        } else {
-            u = u->direita;
-        }
-    }
-    if (u != NULL) {
-        procurar(L, u, prefixo); // procura a partir da primeira instância do prefixo na árvore
-        for (LisNo* p = L->head; p != NULL; p = p->next) {
-            if (i == k) {
-                break;
-            }
-            printf("(%s,%ld) ", p->no->palavra, p->no->freq);
-            ++i;
+    if (vet.n == 0) {
+        printf("nothing for %s.\n", prefixo);
+    } else {
+        qsort(vet.v, vet.n, sizeof(ArvNo*), comparar);
+        for (long i = 0; i < vet.n && i < k; i++) {
+            printf("(%s,%ld) ", vet.v[i]->palavra, vet.v[i]->freq);
         }
         printf("\n");
-    } else {
-        printf("nothing for %s.\n", prefixo);
     }
-    remover_todos_nos_lis(L);
+    free(vet.v);
 }
 
 void imprimir_arv(ArvNo *raiz) {

@@ -6,13 +6,10 @@
 
 int main(void) {
     Arvore *T;
-    Lista *L;
     char comando[13], palavra[257];
     long n;
     T = criar_arv();
-    L = criar_lis();
-    while(1) {
-        scanf(" %s", comando);
+    while(scanf(" %12s", comando) == 1) {
         if (strcmp(comando, "INSERT") == 0) {
             scanf(" %s %ld", palavra, &n);
             ArvNo *novo = criar_no(palavra, n);
@@ -22,7 +19,7 @@ int main(void) {
             buscar_no(T->raiz, palavra); 
         } else if (strcmp(comando, "AUTOCOMPLETE") == 0) {
             scanf(" %s %ld", palavra, &n);
-            autocompletar(L, T, palavra, n);
+            autocompletar(T, palavra, n);
         } else if (strcmp(comando, "DELETE") == 0) {
             scanf(" %s", palavra);
             remover_no(T, palavra);
@@ -34,10 +31,9 @@ int main(void) {
                 printf("\n");
             }
         } else if (strcmp(comando, "EXIT") == 0) {
-            remover_lis(L);
-            remover_arv(T);
             break;
         }
     }
+    remover_arv(T);
     return 0;
 }
