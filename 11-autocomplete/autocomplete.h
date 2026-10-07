@@ -8,6 +8,7 @@ struct no_arvore { // os nós de uma árvore
     ArvNo *esquerda;
     ArvNo *direita;
     ArvNo *pai;
+    int altura;
     char* palavra;
     long freq;
 };

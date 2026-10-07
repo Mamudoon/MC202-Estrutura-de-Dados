@@ -19,6 +19,7 @@ ArvNo* criar_no(char *palavra, long freq) {
     strcpy(temp, palavra);
     novo->palavra = temp;
     novo->freq = freq;
+    novo->altura = 0;
     return novo;
 }
 
@@ -26,6 +27,130 @@ Lista* criar_lis(void) {
     Lista *L = (Lista*) malloc(sizeof(Lista));
     L->head = NULL;
     return L;
+}
+
+int altura(ArvNo *no) { // devolve a altura do nó
+    if (no == NULL) {
+        return 0;
+    }
+    return no->altura;
+}
+
+int maior(int a, int b) { // devolve o maior dos dois
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+void atualizar_altura(ArvNo *no) { // atualiza a altura do nó
+    no->altura = 1 + maior(altura(no->esquerda), altura(no->direita));
+}
+
+int fator(ArvNo *no) { // devolve o fator de balanceamento
+    return altura(no->esquerda) - altura(no->direita);
+}
+
+void rotacionar_LL(Arvore *T, ArvNo *z) {
+    ArvNo *x = z->esquerda;
+
+    z->esquerda = x->direita;
+    if (x->direita != NULL) {
+        x->direita->pai = z;
+    }
+    x->direita = z;
+
+    x->pai = z->pai;
+    if (z->pai != NULL) {
+        if (z->pai->esquerda == z) {
+            z->pai->esquerda = x;
+        } else {
+            z->pai->direita = x;
+        }
+    } else {
+        T->raiz = x;
+    }
+    z->pai = x;
+
+    atualizar_altura(z);
+    atualizar_altura(x);
+}
+
+void rotacionar_RR(Arvore *T, ArvNo *z) {
+    ArvNo *x = z->direita;
+
+    z->direita = x->esquerda;
+    if (x->esquerda != NULL) {
+        x->esquerda->pai = z;
+    }
+    x->esquerda = z;
+
+    x->pai = z->pai;
+    if (z->pai != NULL) {
+        if (z->pai->esquerda == z) {
+            z->pai->esquerda = x;
+        } else {
+            z->pai->direita = x;
+        }
+    } else {
+        T->raiz = x;
+    }
+    z->pai = x;
+
+    atualizar_altura(z); 
+    atualizar_altura(x);  
+}
+
+void balancear_insercao(Arvore *T, ArvNo *novo) {
+    ArvNo *u = novo->pai;
+    while (u != NULL) {
+        int altura_antiga = u->altura;
+        atualizar_altura(u);
+        int fb = fator(u);
+
+        if (fb > 1) { // pesa para a esquerda
+            if (fator(u->esquerda) < 0) { // caso LR
+                rotacionar_RR(T, u->esquerda);
+            }
+            rotacionar_LL(T, u);
+            break;
+        } else if (fb < -1) { // pesa para a direita
+            if (fator(u->direita) > 0) { // caso RL
+                rotacionar_LL(T, u->direita);
+            }
+            rotacionar_RR(T, u);
+            break;
+        }
+
+        if (u->altura == altura_antiga) {
+            break;
+        }
+        u = u->pai;
+    }
+}
+
+void balancear_remocao(Arvore *T, ArvNo *u) {
+    while (u != NULL) {
+        atualizar_altura(u);
+        int fb = fator(u);
+
+        if (fb > 1) { // pesa para a esquerda
+            if (fator(u->esquerda) < 0) { // caso LR
+                rotacionar_RR(T, u->esquerda);
+            }
+            rotacionar_LL(T, u);
+            u = u->pai; 
+        } else if (fb < -1) { // pesa para a direita
+            if (fator(u->direita) > 0) { // caso RL
+                rotacionar_LL(T, u->direita);
+            }
+            rotacionar_RR(T, u);
+            u = u->pai;
+        }
+
+        u = u->pai;
+    }
 }
 
 void procurar(Lista *L, ArvNo *raiz, char *prefixo) { // acha todas as palavra que começam com o prefixo e adiciona para uma lista
@@ -58,7 +183,8 @@ void buscar_no(ArvNo *raiz, char *palavra) {
 
 void remover_no(Arvore* T, char* lixo) {
     ArvNo *u = T->raiz, *p = NULL;
-    while (u != NULL && strcmp(u->palavra, lixo) != 0) { // percorre a árvore até achar um nó com a chave igual a lixo ou até não achar
+    ArvNo *inicio = NULL;
+    while (u != NULL && strcmp(u->palavra, lixo) != 0) {
         if (strcmp(u->palavra, lixo) > 0) {
             u = u->esquerda;
         } else {
@@ -68,10 +194,11 @@ void remover_no(Arvore* T, char* lixo) {
     if (u != NULL) {
         if (u->direita != NULL) {
             p = u->direita;
-            while (p->esquerda != NULL) { // percorre até achar o sucessor de u
+            while (p->esquerda != NULL) {
                 p = p->esquerda;
             }
             if (p != u->direita) {
+                inicio = p->pai; 
                 p->pai->esquerda = p->direita;
                 if (p->direita != NULL) {
                     p->direita->pai = p->pai;
@@ -84,6 +211,7 @@ void remover_no(Arvore* T, char* lixo) {
                 u->direita->pai = p;
                 p->pai = u->pai;
             } else {
+                inicio = p;  
                 if (u->esquerda != NULL) {
                     u->esquerda->pai = p;
                 }
@@ -92,10 +220,11 @@ void remover_no(Arvore* T, char* lixo) {
             }
         } else if (u->esquerda != NULL) {
             p = u->esquerda;
-            while (p->direita != NULL) { // percorre até achar o predecessor de u
+            while (p->direita != NULL) {
                 p = p->direita;
             }
             if (p != u->esquerda) {
+                inicio = p->pai; 
                 p->pai->direita = p->esquerda;
                 if (p->esquerda != NULL) {
                     p->esquerda->pai = p->pai;
@@ -105,10 +234,14 @@ void remover_no(Arvore* T, char* lixo) {
                 u->esquerda->pai = p;
                 p->pai = u->pai;
             } else {
+                inicio = p;
                 p->direita = u->direita;
                 p->pai = u->pai;
             }
-        } 
+        } else {
+            inicio = u->pai; 
+        }
+
         if (u == T->raiz) {
             T->raiz = p;
         } else if (u->pai->esquerda == u) {
@@ -119,6 +252,7 @@ void remover_no(Arvore* T, char* lixo) {
 
         free(u->palavra);
         free(u);
+        balancear_remocao(T, inicio); 
     }
 }
 
@@ -146,7 +280,6 @@ void remover_arv(Arvore *T) {
 }
 
 void remover_lis(Lista *L) {
-    remover_todos_nos_lis(L); 
     free(L);
 }
 
@@ -158,6 +291,7 @@ void inserir_no_arv(Arvore *T, ArvNo *novo) {
         p = u;
         if (strcmp(novo->palavra, u->palavra) == 0) {
             u->freq = novo->freq;
+            free(novo->palavra);
             free(novo);
             return;
         } else if (strcmp(novo->palavra, u->palavra) < 0) {
@@ -174,12 +308,14 @@ void inserir_no_arv(Arvore *T, ArvNo *novo) {
         p->direita = novo;
     }
     novo->pai = p;
+    balancear_insercao(T, novo);
 }
 
 void inserir_no_lis(Lista *L, LisNo *novo) {
     LisNo* p;
     if (L->head == NULL) {
         L->head = novo;
+        novo->next = NULL;
         return;
     }
     if (novo->no->freq > L->head->no->freq) { // se for maior que o primeiro
@@ -225,7 +361,6 @@ void autocompletar(Lista *L, Arvore *T, char *prefixo, long k) {
         }
     }
     if (u != NULL) {
-        printf("oi\n");
         procurar(L, u, prefixo); // procura a partir da primeira instância do prefixo na árvore
         for (LisNo* p = L->head; p != NULL; p = p->next) {
             if (i == k) {
