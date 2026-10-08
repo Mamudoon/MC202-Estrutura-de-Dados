@@ -10,17 +10,13 @@ struct no_arvore { // os nós de uma árvore
     int altura;
     char* palavra;
     long freq;
+    long freq_min;
+    long freq_max;
 };
 
 typedef struct arvore { // começo de uma árvore 
     ArvNo *raiz;
 } Arvore;
-
-typedef struct vetor{
-    ArvNo **v;
-    long n;
-    long cap;
-} Vetor;
 
 /**
  * Cria a árvore T;
@@ -32,11 +28,15 @@ Arvore* criar_arv(void);
  */
 ArvNo* criar_no(char *palavra, long freq); 
 
+int comparar_freq(const void *a, const void *b);
+
+int comparar_palavras(const void *a, const void *b);
+
 /**
  * Adiciona nós para uma árvore;
- * (Árvore T, o nó sendo inserido)
+ * (Árvore T, o nó sendo inserido, função de comparação que será usada)
  */
-void inserir_no_arv(Arvore *T, ArvNo *novo); 
+int inserir_no_arv(Arvore *T, ArvNo *novo, int (*comparar)(const void*, const void*)); 
 
 /**
  * Remove nós de uma árvore;
@@ -58,9 +58,9 @@ void buscar_no(ArvNo *raiz, char *palavra);
 
 /**
  * Procura todas as palavras com o prefixo e imprime baseado na frequencia;
- * (Lista L, Árvore T, o prefixo que queremos completar, o número de elementos para imprimir)
+ * (Árvore T, Árvore F, o prefixo que queremos completar, o número de elementos para imprimir)
  */
-void autocompletar(Arvore *T, char *prefixo, long k);
+void autocompletar(Arvore *T, Arvore *F, char *prefixo, long k);
 
 /**
  * Imprime a ávore em ordem;
