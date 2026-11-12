@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include "hashing.h"
 
-Hash* criar_tabela(int n) {
+Hash* criar_tabela(unsigned int n) {
     Hash* hash = (Hash*) malloc(sizeof(Hash));
     hash->dim = n;
+    hash->max = n*0.7;
     hash->n = 0;
     hash->tabela = (Elem*) calloc(n, sizeof(Elem));
     return hash;
@@ -13,20 +14,30 @@ Hash* criar_tabela(int n) {
 static unsigned int h1(unsigned int chave, int dim) {
     unsigned int fracao = ((long)chave * 2654435769); // 2654435769 é a razão áurea vezes 2^32, porque esse é o tamanho do int
     chave = ((long)fracao * dim) >> 32; // move 32 bits para voltar a escala normal, consequencia de ter multiplicado por 2^32
-    //printf("chave h1: %u\n", chave);
     return chave;
 }
 
 static unsigned int h2(unsigned int chave, int dim) {
-    unsigned int frac = (long)chave * 1779033703; // 1779033703 esse é a razão prata. O resto é o mesmo
-    chave =((long)frac * dim) >> 32;
-    //printf("chave h2: %u\n", chave);
+    unsigned int fracao = (long)chave * 1779033703; // 1779033703 esse é a razão prata. O resto é o mesmo
+    chave =((long)fracao * dim) >> 32;
     return chave;
 }
 
-//static redimensionar(Hash* hash) {
-
-//}
+static void redimensionar(Hash* hash) {
+    Hash* novo = criar_tabela(2*hash->dim);
+    for (unsigned int i = 0; i < hash->dim; i++) {
+        if (hash->tabela[i].t1) {
+            inserir(novo, hash->tabela[i].t1chave, hash->tabela[i].t1valor);
+        }
+        if (hash->tabela[i].t2) {
+            inserir(novo, hash->tabela[i].t2chave, hash->tabela[i].t2valor);
+        }
+    } 
+    free(hash->tabela);
+    *hash = *novo;
+    free(novo);
+    return;
+}
 
 void buscar(Hash* hash, unsigned int chave) {
     unsigned int k;
@@ -53,7 +64,10 @@ void inserir(Hash* hash, unsigned int chave, int valor) {
     unsigned int k, temp_chave;
     int temp_valor;
     hash->n++;
-    for (int i = 0; i < 20; i++) {
+    if (hash->n > hash->max) {
+        redimensionar(hash);
+    }
+    for (int i = 0; i < 10; i++) {
         // aqui é a primeira tabela
         k = h1(chave, hash->dim);
         temp_valor = hash->tabela[k].t1valor;
@@ -87,7 +101,7 @@ void inserir(Hash* hash, unsigned int chave, int valor) {
         }
     }
 
-    //redimensionar(hash);
+    redimensionar(hash);
     inserir(hash, chave, valor);
     return;
 }

@@ -8,8 +8,9 @@ typedef struct elemento {
 } Elem;
 
 typedef struct hash {
-    int dim;
-    int n;
+    unsigned int dim;
+    unsigned int max;
+    unsigned int n;
     Elem* tabela;
 } Hash;
 
@@ -21,7 +22,7 @@ typedef struct hash {
  * 
  * Retorno: Ponteiro para a tabela
  */
-Hash* criar_tabela(int n);
+Hash* criar_tabela(unsigned int n);
 
 /**
  * Busca por uma chave específica na tabela e imprime o resultado da busca
