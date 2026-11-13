@@ -60,9 +60,32 @@ void buscar(Hash* hash, unsigned int chave) {
     return;
 }
 
+static int atualizar(Hash* hash, unsigned int chave, int valor) {
+    unsigned int k;
+    k = h1(chave, hash->dim);
+    if (chave == hash->tabela[k].t1chave) {
+        if (hash->tabela[k].t1) {
+            hash->tabela[k].t1valor = valor;
+            return 1;
+        }
+    }
+
+    k = h2(chave, hash->dim);
+    if (chave == hash->tabela[k].t2chave) {
+        if (hash->tabela[k].t2) {
+            hash->tabela[k].t2valor = valor;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void inserir(Hash* hash, unsigned int chave, int valor) {
     unsigned int k, temp_chave;
     int temp_valor;
+    if (atualizar(hash, chave, valor)) {
+        return;
+    }
     hash->n++;
     if (hash->n > hash->max) {
         redimensionar(hash);
@@ -109,14 +132,16 @@ void inserir(Hash* hash, unsigned int chave, int valor) {
 void remover(Hash* hash, unsigned int chave) {
     unsigned int k;
     k = h1(chave, hash->dim);
-    if (chave == hash->tabela[k].t1chave) {
+    if (hash->tabela[k].t1 && chave == hash->tabela[k].t1chave) {
         hash->tabela[k].t1 = 0;
+        hash->n--;
         return;
     }
 
     k = h2(chave, hash->dim);
-    if (chave == hash->tabela[k].t2chave) {
+    if (hash->tabela[k].t2 && chave == hash->tabela[k].t2chave) {
         hash->tabela[k].t2 = 0;
+        hash->n--;
         return;
     }
     return;
